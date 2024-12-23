@@ -16,10 +16,11 @@ type Client struct {
 	AccessToken string
 }
 
+var tr *http.Transport = &http.Transport{
+	TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+}
+
 func (c *Client) CreateAccount(request api.CreateAccountRequest) (account model.Account, err *api.Error) {
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
 	client := &http.Client{Transport: tr}
 	body, _ := json.Marshal(request)
 	req, _ := http.NewRequest("POST", c.BaseUrl+"/account", bytes.NewReader(body))
@@ -38,9 +39,6 @@ func (c *Client) CreateAccount(request api.CreateAccountRequest) (account model.
 }
 
 func (c *Client) CreateSession(request api.CreateSessionRequest) (token string, err *api.Error) {
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
 	client := &http.Client{Transport: tr}
 	body, _ := json.Marshal(request)
 	req, _ := http.NewRequest("POST", c.BaseUrl+"/sessions", bytes.NewReader(body))
@@ -59,4 +57,53 @@ func (c *Client) CreateSession(request api.CreateSessionRequest) (token string, 
 	respBody, _ := io.ReadAll(resp.Body)
 	json.Unmarshal(respBody, &respToken)
 	return respToken.Token, nil
+}
+
+func (c *Client) Retrieve(token string) model.Account {
+	body, _ := json.Marshal(struct {
+		Token string `json:"token"`
+	}{Token: token})
+	req, _ := http.NewRequest("POST", c.BaseUrl+"/sessions/retrieve", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-Access-Token", c.AccessToken)
+	client := &http.Client{Transport: tr}
+	resp, _ := client.Do(req)
+	var account model.Account
+	respBody, _ := io.ReadAll(resp.Body)
+	json.Unmarshal(respBody, &account)
+	return account
+}
+
+func (c *Client) DeleteAccount(namespace, id string) *api.Error {
+	req, _ := http.NewRequest("DELETE", c.BaseUrl+"/account", nil)
+	req.Header.Set("X-Access-Token", c.AccessToken)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("namespace", namespace)
+	req.Header.Set("id", id)
+	req.Header.Set("idby", "id")
+	client := &http.Client{Transport: tr}
+	resp, _ := client.Do(req)
+	if resp.StatusCode != 204 {
+		var err api.Error
+		respBody, _ := io.ReadAll(resp.Body)
+		json.Unmarshal(respBody, &err)
+		return &err
+	}
+	return nil
+}
+
+func (c *Client) ListAccounts(namespace string) []model.Pagination[model.Account] {
+	req, _ := http.NewRequest("GET", c.BaseUrl+"/accounts", nil)
+	req.Header.Set("X-Access-Token", c.AccessToken)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("namespace", namespace)
+	client := &http.Client{Transport: tr}
+	resp, _ := client.Do(req)
+	var accounts []model.Pagination[model.Account]
+	if resp.StatusCode != 200 {
+		return accounts
+	}
+	respBody, _ := io.ReadAll(resp.Body)
+	json.Unmarshal(respBody, &accounts)
+	return accounts
 }
