@@ -115,8 +115,7 @@ func (api *AccountApi) ListAccount(ctx *gin.Context) {
 		page, _ = strconv.ParseInt(pageString, 10, 64)
 	}
 	tx := api.db
-	tx.Where("namespace = ?", namespace)
-	accountList, err := model.ListByOption[model.Account](tx, int(limit), int(page))
+	accountList, err := model.ListByOption[model.Account](tx, int(limit), int(page), model.WithNamespace(namespace))
 	if err != nil {
 		ctx.JSON(500, Error{
 			Message:    err.Error(),

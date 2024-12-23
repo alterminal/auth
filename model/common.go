@@ -12,6 +12,12 @@ type Pagination[T any] struct {
 
 type Option func(*gorm.DB) *gorm.DB
 
+func WithNamespace(namespace string) Option {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Where("namespace = ?", namespace)
+	}
+}
+
 func ListByOption[T any](db *gorm.DB, limit, page int, opts ...Option) (Pagination[*T], error) {
 	var ts []*T
 	db = db.Model(&ts)
