@@ -1,4 +1,4 @@
-FROM golang:1.22.3-alpine AS build-stage
+FROM golang:1.22.5 AS build-stage
 WORKDIR /
 COPY . .
 RUN go build -o /main
