@@ -5,8 +5,8 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/macaoservices/auth/api"
-	"github.com/macaoservices/auth/repo"
+	"github.com/alterminal/auth/api"
+	"github.com/alterminal/auth/repo"
 	"github.com/spf13/viper"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
