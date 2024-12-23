@@ -23,12 +23,12 @@ func HashWithSalt(password string) (string, string) {
 
 // Check if two passwords match
 func CheckPassword(
+	password string,
 	hashedPassword,
-	currPassword string,
 	salt string) bool {
-	var currPasswordHash = HashPassword(currPassword, salt)
-	if len(currPassword) == 0 {
+	if len(password) == 0 {
 		return false
 	}
+	var currPasswordHash = HashPassword(password, salt)
 	return hashedPassword == currPasswordHash
 }

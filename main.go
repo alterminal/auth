@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/macaoservices/auth/api"
-	"github.com/macaoservices/auth/model"
+	"github.com/macaoservices/auth/repo"
 	"github.com/spf13/viper"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -27,7 +27,6 @@ func init() {
 }
 
 func main() {
-	port := viper.GetString("system.port")
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 		viper.GetString("database.user"),
 		viper.GetString("database.password"),
@@ -38,6 +37,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	model.AutoMigrate(db)
-	api.Run(port, db)
+	repo.Init(db)
+	api.Run(db)
 }
