@@ -169,14 +169,14 @@ func (c *Client) GetAccount(namespace string, option AccountOption) (model.Accou
 }
 
 func (c *Client) SetPassword(namespace string, option AccountOption, password string) *api.Error {
-
 	// body, _ := json.Marshal(api.SetPasswordRequest{Password: password})
+	body, _ := json.Marshal(api.SetPasswordRequest{Password: password})
 	paramsValue := url.Values{}
 	paramsValue = option(paramsValue)
 	paramsValue.Add("namespace", namespace)
 	u, _ := url.ParseRequestURI(c.BaseUrl + "/account/password")
 	u.RawQuery = paramsValue.Encode()
-	req := c.buildRequest("PUT", u, nil)
+	req := c.buildRequest("PUT", u, bytes.NewBuffer(body))
 	client := &http.Client{Transport: tr}
 	resp, _ := client.Do(req)
 	if resp.StatusCode != 204 {
