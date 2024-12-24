@@ -51,7 +51,7 @@ type AccountApi struct {
 }
 
 func (api *AccountApi) BindRouter(router *gin.Engine) {
-	router.GET("account", AuthMiddleware(api.AccessToken), api.CreateAccount)
+	router.GET("account", AuthMiddleware(api.AccessToken), api.GetAccount)
 	router.POST("account", AuthMiddleware(api.AccessToken), api.CreateAccount)
 	router.PUT("account/password", AuthMiddleware(api.AccessToken), api.UpdatePassword)
 	router.GET("accounts", AuthMiddleware(api.AccessToken), api.ListAccount)
