@@ -2,6 +2,7 @@ package api
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"time"
 
@@ -16,6 +17,10 @@ import (
 )
 
 func Run(db *gorm.DB) {
+	port := "8080"
+	if p := viper.GetString("port"); p != "" {
+		port = p
+	}
 	accessToken := viper.GetString("X-Access-Token")
 	router := gin.Default()
 	router.Use(mid.AccessControllAllowfunc(mid.AccessControllAllowConfig{
@@ -23,10 +28,9 @@ func Run(db *gorm.DB) {
 		Headers: "*",
 		Methods: "*",
 	}))
-	router.Use(AuthMiddleware(accessToken))
-	accountApi := AccountApi{db: db}
+	accountApi := AccountApi{db: db, AccessToken: accessToken}
 	accountApi.BindRouter(router)
-	router.Run(":8080")
+	router.Run(":" + port)
 }
 
 func AuthMiddleware(accessToken string) gin.HandlerFunc {
@@ -37,20 +41,20 @@ func AuthMiddleware(accessToken string) gin.HandlerFunc {
 				"error": "Unauthorized",
 			})
 			c.Abort()
-			return
 		}
 	}
 }
 
 type AccountApi struct {
-	db *gorm.DB
+	db          *gorm.DB
+	AccessToken string
 }
 
 func (api *AccountApi) BindRouter(router *gin.Engine) {
-	router.POST("account", api.CreateAccount)
-	router.PUT("account/password", api.UpdatePassword)
-	router.GET("accounts", api.ListAccount)
-	router.DELETE("account", api.DeleteAccount)
+	router.POST("account", AuthMiddleware(api.AccessToken), api.CreateAccount)
+	router.PUT("account/password", AuthMiddleware(api.AccessToken), api.UpdatePassword)
+	router.GET("accounts", AuthMiddleware(api.AccessToken), api.ListAccount)
+	router.DELETE("account", AuthMiddleware(api.AccessToken), api.DeleteAccount)
 	router.POST("sessions", api.CreateSession)
 	router.POST("sessions/retrieve", api.RetrieveSession)
 }
@@ -115,8 +119,7 @@ func (api *AccountApi) ListAccount(ctx *gin.Context) {
 	if pageString := ctx.Query("page"); pageString != "" {
 		page, _ = strconv.ParseInt(pageString, 10, 64)
 	}
-	tx := api.db
-	accountList, err := model.ListByOption[model.Account](tx, int(limit), int(page), model.WithNamespace(namespace))
+	accountList, err := model.ListByOption[model.Account](api.db, int(limit), int(page), model.WithNamespace(namespace))
 	if err != nil {
 		ctx.JSON(500, Error{
 			Message:    err.Error(),
@@ -125,6 +128,7 @@ func (api *AccountApi) ListAccount(ctx *gin.Context) {
 		})
 		return
 	}
+	fmt.Println(accountList)
 	ctx.JSON(200, accountList)
 }
 

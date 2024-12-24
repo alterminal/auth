@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 
 	"github.com/alterminal/auth/api"
 	"github.com/alterminal/auth/model"
@@ -81,12 +83,17 @@ func (c *Client) Retrieve(token string) (model.Account, *api.Error) {
 }
 
 func (c *Client) DeleteAccount(namespace, id string) *api.Error {
-	req, _ := http.NewRequest("DELETE", c.BaseUrl+"/account", nil)
+	paramsValue := url.Values{}
+	paramsValue.Add("namespace", namespace)
+	paramsValue.Add("id", id)
+	paramsValue.Add("idby", "id")
+	u, _ := url.ParseRequestURI(c.BaseUrl + "/accounts")
+	u.RawQuery = paramsValue.Encode()
+	req, _ := http.NewRequest("DELETE", fmt.Sprintf("%v", u), nil)
 	req.Header.Set("X-Access-Token", c.AccessToken)
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("namespace", namespace)
-	req.Header.Set("id", id)
-	req.Header.Set("idby", "id")
+
 	client := &http.Client{Transport: tr}
 	resp, _ := client.Do(req)
 	if resp.StatusCode != 204 {
@@ -99,10 +106,13 @@ func (c *Client) DeleteAccount(namespace, id string) *api.Error {
 }
 
 func (c *Client) ListAccounts(namespace string) []model.Pagination[model.Account] {
-	req, _ := http.NewRequest("GET", c.BaseUrl+"/accounts", nil)
+	paramsValue := url.Values{}
+	paramsValue.Add("namespace", namespace)
+	u, _ := url.ParseRequestURI(c.BaseUrl + "/accounts")
+	u.RawQuery = paramsValue.Encode()
+	req, _ := http.NewRequest("GET", fmt.Sprintf("%v", u), nil)
 	req.Header.Set("X-Access-Token", c.AccessToken)
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("namespace", namespace)
 	client := &http.Client{Transport: tr}
 	resp, _ := client.Do(req)
 	var accounts []model.Pagination[model.Account]
