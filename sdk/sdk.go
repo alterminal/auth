@@ -105,7 +105,7 @@ func (c *Client) DeleteAccount(namespace, id string) *api.Error {
 	return nil
 }
 
-func (c *Client) ListAccounts(namespace string) []model.Pagination[model.Account] {
+func (c *Client) ListAccounts(namespace string) model.Pagination[*model.Account] {
 	paramsValue := url.Values{}
 	paramsValue.Add("namespace", namespace)
 	u, _ := url.ParseRequestURI(c.BaseUrl + "/accounts")
@@ -115,7 +115,7 @@ func (c *Client) ListAccounts(namespace string) []model.Pagination[model.Account
 	req.Header.Set("Content-Type", "application/json")
 	client := &http.Client{Transport: tr}
 	resp, _ := client.Do(req)
-	var accounts []model.Pagination[model.Account]
+	var accounts model.Pagination[*model.Account]
 	if resp.StatusCode != 200 {
 		return accounts
 	}
