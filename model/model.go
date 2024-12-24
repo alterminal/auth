@@ -14,10 +14,10 @@ type Account struct {
 	UpdatedAt time.Time `json:"updatedAt"`
 	CreatedAt time.Time `json:"createdAt"`
 	// virtual field
-	Account     *string `json:"account"`
-	Email       *string `json:"email"`
-	PhoneRegion *string `json:"phoneRegion"`
-	PhoneNumber *string `json:"phoneNumber"`
+	Account     *string `json:"account" gorm:"-"`
+	Email       *string `json:"email" gorm:"-"`
+	PhoneRegion *string `json:"phoneRegion" gorm:"-"`
+	PhoneNumber *string `json:"phoneNumber" gorm:"-"`
 	// hidden field
 	Password string `json:"-" gorm:"type:char(128)"`
 	Salt     string `json:"-" gorm:"type:char(16)"`
@@ -55,16 +55,10 @@ func (a *Account) SetPassword(password string) {
 }
 
 func (a *Account) BeforeDelete(tx *gorm.DB) error {
-	err := tx.Delete(&AccountEmail{Namespace: a.Namespace, ID: a.ID}).Error
-	if err != nil {
-		return err
-	}
-	err = tx.Delete(&AccountTable{Namespace: a.Namespace, ID: a.ID}).Error
-	if err != nil {
-		return err
-	}
-	err = tx.Delete(&AccountPhone{Namespace: a.Namespace, ID: a.ID}).Error
-	return err
+	tx.Where("namespace = ? AND id = ?", a.Namespace, a.ID).Delete(&AccountEmail{})
+	tx.Where("namespace = ? AND id = ?", a.Namespace, a.ID).Delete(&AccountTable{})
+	tx.Where("namespace = ? AND id = ?", a.Namespace, a.ID).Delete(&AccountPhone{})
+	return nil
 }
 
 func (a *Account) AfterFind(tx *gorm.DB) error {

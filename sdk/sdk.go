@@ -87,13 +87,11 @@ func (c *Client) DeleteAccount(namespace, id string) *api.Error {
 	paramsValue.Add("namespace", namespace)
 	paramsValue.Add("id", id)
 	paramsValue.Add("idby", "id")
-	u, _ := url.ParseRequestURI(c.BaseUrl + "/accounts")
+	u, _ := url.ParseRequestURI(c.BaseUrl + "/account")
 	u.RawQuery = paramsValue.Encode()
 	req, _ := http.NewRequest("DELETE", fmt.Sprintf("%v", u), nil)
 	req.Header.Set("X-Access-Token", c.AccessToken)
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("namespace", namespace)
-
 	client := &http.Client{Transport: tr}
 	resp, _ := client.Do(req)
 	if resp.StatusCode != 204 {
