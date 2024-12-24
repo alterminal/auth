@@ -121,3 +121,27 @@ func (c *Client) ListAccounts(namespace string) model.Pagination[*model.Account]
 	json.Unmarshal(respBody, &accounts)
 	return accounts
 }
+
+func (c *Client) GetAccount(namespace, id string) (model.Account, *api.Error) {
+	paramsValue := url.Values{}
+	paramsValue.Add("id", id)
+	paramsValue.Add("idby", "id")
+	paramsValue.Add("namespace", namespace)
+	u, _ := url.ParseRequestURI(c.BaseUrl + "/account")
+	u.RawQuery = paramsValue.Encode()
+	req, _ := http.NewRequest("GET", fmt.Sprintf("%v", u), nil)
+	req.Header.Set("X-Access-Token", c.AccessToken)
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{Transport: tr}
+	resp, _ := client.Do(req)
+	if resp.StatusCode != 200 {
+		var err api.Error
+		respBody, _ := io.ReadAll(resp.Body)
+		json.Unmarshal(respBody, &err)
+		return model.Account{}, &err
+	}
+	var account model.Account
+	respBody, _ := io.ReadAll(resp.Body)
+	json.Unmarshal(respBody, &account)
+	return account, nil
+}

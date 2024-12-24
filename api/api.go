@@ -51,12 +51,26 @@ type AccountApi struct {
 }
 
 func (api *AccountApi) BindRouter(router *gin.Engine) {
+	router.GET("account", AuthMiddleware(api.AccessToken), api.CreateAccount)
 	router.POST("account", AuthMiddleware(api.AccessToken), api.CreateAccount)
 	router.PUT("account/password", AuthMiddleware(api.AccessToken), api.UpdatePassword)
 	router.GET("accounts", AuthMiddleware(api.AccessToken), api.ListAccount)
 	router.DELETE("account", AuthMiddleware(api.AccessToken), api.DeleteAccount)
 	router.POST("sessions", api.CreateSession)
 	router.POST("sessions/retrieve", api.RetrieveSession)
+}
+
+func (api *AccountApi) GetAccount(ctx *gin.Context) {
+	account, ok := GetAccount(api.db, ctx)
+	if !ok {
+		ctx.JSON(404, Error{
+			Message:    "account not found",
+			StatusCode: 404,
+			Code:       "404001",
+		})
+		return
+	}
+	ctx.JSON(200, account)
 }
 
 func (api *AccountApi) RetrieveSession(ctx *gin.Context) {
