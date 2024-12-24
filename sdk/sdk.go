@@ -168,7 +168,9 @@ func (c *Client) GetAccount(namespace string, option AccountOption) (model.Accou
 	return account, nil
 }
 
-func (c *Client) SetPassword(namespace string, option AccountOption) *api.Error {
+func (c *Client) SetPassword(namespace string, option AccountOption, password string) *api.Error {
+
+	// body, _ := json.Marshal(api.SetPasswordRequest{Password: password})
 	paramsValue := url.Values{}
 	paramsValue = option(paramsValue)
 	paramsValue.Add("namespace", namespace)

@@ -24,3 +24,7 @@ type CreateSessionRequest struct {
 	PhoneNumber string `json:"phoneNumber"`
 	Idby        string `json:"idby"`
 }
+
+type SetPasswordRequest struct {
+	Password string `json:"password" binding:"required"`
+}

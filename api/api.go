@@ -240,9 +240,7 @@ func (api *AccountApi) UpdatePassword(c *gin.Context) {
 		})
 		return
 	}
-	req, ok := ShouldBindJSON[struct {
-		Password string `json:"password"`
-	}](c)
+	req, ok := ShouldBindJSON[SetPasswordRequest](c)
 	if !ok {
 		return
 	}
