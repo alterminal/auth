@@ -59,7 +59,7 @@ func (c *Client) CreateSession(request api.CreateSessionRequest) (token string, 
 	return respToken.Token, nil
 }
 
-func (c *Client) Retrieve(token string) model.Account {
+func (c *Client) Retrieve(token string) (model.Account, *api.Error) {
 	body, _ := json.Marshal(struct {
 		Token string `json:"token"`
 	}{Token: token})
@@ -68,10 +68,16 @@ func (c *Client) Retrieve(token string) model.Account {
 	req.Header.Set("X-Access-Token", c.AccessToken)
 	client := &http.Client{Transport: tr}
 	resp, _ := client.Do(req)
+	if resp.StatusCode != 200 {
+		var err api.Error
+		respBody, _ := io.ReadAll(resp.Body)
+		json.Unmarshal(respBody, &err)
+		return model.Account{}, &err
+	}
 	var account model.Account
 	respBody, _ := io.ReadAll(resp.Body)
 	json.Unmarshal(respBody, &account)
-	return account
+	return account, nil
 }
 
 func (c *Client) DeleteAccount(namespace, id string) *api.Error {

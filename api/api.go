@@ -69,6 +69,7 @@ func (api *AccountApi) RetrieveSession(ctx *gin.Context) {
 			StatusCode: 401,
 			Code:       "401001",
 		})
+		return
 	}
 	var account model.Account
 	err = api.db.First(&account, "namespace = ? AND id = ?", claims["namespace"], claims["id"]).Error
@@ -204,7 +205,7 @@ func (api *AccountApi) CreateSession(ctx *gin.Context) {
 		"account":   account.Account,
 		"email":     account.Email,
 		"id":        account.ID,
-		"exp":       time.Now().Add(time.Hour * 24 * 7).Unix(),
+		"exp":       time.Now().Add(time.Hour * 7 * 24).Unix(),
 	})
 	ctx.JSON(200, gin.H{
 		"token": token,

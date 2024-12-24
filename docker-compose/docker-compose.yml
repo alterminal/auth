@@ -1,11 +1,7 @@
-version: "1.0.0"
 services:
-  db:
+  auth:
     image: chenyunda218/auth:lastest
     container_name: auth
-    ports:
-      - "8080:8080"
+    network_mode: "host"
     volumes:
       - /home/dan/auth/.env.yaml:/.env.yaml
-volumes:
-  db_data:
